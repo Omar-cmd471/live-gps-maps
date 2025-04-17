@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Live GPS Map from Google Sheets</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; width: 100vw; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <script>
+    const csvURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSt_EQo_oUKogE5z4gnqU45Bfp_zhmpPG3cnnFvFMewWDle79Jtd2qRN-TRIVRmUEm3aBdBcsa2BSmX/pub?gid=0&single=true&output=csv";
+
+    let map = L.map('map').setView([0, 0], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 20,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let marker;
+
+    async function updateMap() {
+      const response = await fetch(csvURL);
+      const text = await response.text();
+      const rows = text.split("\n");
+      const lastRow = rows[rows.length - 1].split(",");
+
+      const lat = parseFloat(lastRow[0]);
+      const lng = parseFloat(lastRow[1]);
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lng]).addTo(map);
+        map.setView([lat, lng]);
+      }
+    }
+
+    updateMap();
+    setInterval(updateMap, 30000); // تحديث كل 30 ثانية
+  </script>
+</body>
+</html>
