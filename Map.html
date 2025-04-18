@@ -11,7 +11,52 @@
 </head>
 <body>
 
+<div id="map"></div><!DOCTYPE html>
+<html>
+<head>
+  <title>Live GPS Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; }
+  </style>
+</head>
+<body>
 <div id="map"></div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+  const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/1_jxHtvrH6aw69-FLNiMS_XUebyHXZneqf7ykoBzY_IQ/pub?output=csv';
+
+  const map = L.map('map').setView([33.3, 44.4], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  function fetchData() {
+    Papa.parse(sheetUrl, {
+      download: true,
+      header: true,
+      complete: function(results) {
+        const data = results.data;
+        const latest = data[data.length - 1];
+        if (latest.latitude && latest.longitude) {
+          const lat = parseFloat(latest.latitude);
+          const lng = parseFloat(latest.longitude);
+          L.marker([lat, lng]).addTo(map).bindPopup("Latest Location").openPopup();
+          map.setView([lat, lng], 15);
+        }
+      }
+    });
+  }
+
+  fetchData();
+  setInterval(fetchData, 15000); // يحدث كل 15 ثانية
+</script>
+</body>
+</html>
+
 
 <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 <script>
